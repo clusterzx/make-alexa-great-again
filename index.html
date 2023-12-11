@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make Alexa great again</title>
+  <style>
+    @charset "UTF-8";
+    .text-center {
+      text-align: center;
+    }
+
+    .cf:before, .cf:after {
+      content: " ";
+      display: table;
+    }
+    .cf:after {
+      clear: both;
+    }
+
+    body {
+      background-color: #161719;
+      font-family: "Roboto", sans-serif;
+      color: #9fa2a7;
+    }
+    .wrapper {
+      max-width: 550px;
+      margin: 0 auto;
+    }
+    .speechbubble {
+      background-color: #26272b;
+      color: #9fa2a7;
+      font-size: 0.8em;
+      line-height: 1.75;
+      padding: 15px 25px;
+      margin-bottom: 20px;
+      cursor: default;
+      margin-bottom: 35px;
+    }
+    .speechbubble:nth-child(2n) {
+      border-left: 5px solid;
+    }
+    .speechbubble:nth-child(2n):after {
+      content: "";
+      margin-top: -30px;
+      padding-top: 0px;
+      position: relative;
+      bottom: -45px;
+      left: 20px;
+      border-width: 30px 0 0 30px;
+      border-style: solid;
+      border-color: #26272b transparent;
+      display: block;
+      width: 0;
+    }
+    .speechbubble:nth-child(2n+1) {
+      border-right: 5px solid;
+    }
+    .speechbubble:nth-child(2n+1):after {
+      content: "";
+      margin-top: -30px;
+      padding-top: 0px;
+      position: relative;
+      bottom: -45px;
+      left: 350px;
+      border-width: 30px 30px 0 0;
+      border-style: solid;
+      border-color: #26272b transparent;
+      display: block;
+      width: 0;
+    }
+    .speechbubble:nth-child(4n+1) {
+      border-color: #56b273;
+    }
+    .speechbubble:nth-child(4n+2) {
+      border-color: #01AD9B;
+    }
+    .speechbubble:nth-child(4n+3) {
+      border-color: #b388dd;
+    }
+    .speechbubble:nth-child(4n+4) {
+      border-color: #ff8750;
+    }
+    .speechbubble p:before {
+      content: "“";
+      font-family: Georgia;
+      font-size: 40px;
+      line-height: 0;
+      display: inline-block;
+      display: -webkit-inline-box;
+    }
+    .speechbubble .username {
+      display: inline;
+      font-style: italic;
+      float: right;
+    }
+    .speechbubble .username:before {
+      content: "- ";
+    }
+  </style>
+  <style>
+.recorder-container {
+  width: 80px;
+  background-color: #e74c3c;
+  display: block;
+  margin: 50px auto 0px auto;
+  border-radius: 100%;
+  box-shadow: 0px 0px 15px 2px #bdc3c7;
+  cursor: default;
+  transition: .3s all ease-in;
+  position: relative;
+}
+.icon-microphone {
+  color: #fff;
+  font-size: 25px;
+  line-height: 80px;
+  display: block;
+  text-align: center;
+  transition: .1s all ease-in;
+  position: relative;
+}
+
+.outer {
+  width: 78px;
+  height: 78px;
+  -webkit-transform: scale(1);
+  transform: scale(1);
+  border-radius: 100%;
+  position: absolute;
+  background-color: transparent;
+  border: 1px solid #7f8c8d;
+  z-index: -1;
+  transition: 1.5s all ease;
+  -webkit-animation: woong 1.5s infinite;
+  animation: woong 1.5s infinite;
+}
+
+.outer-2 {
+  width: 80px;
+  height: 80px;
+  -webkit-transform: scale(1);
+  transform: scale(1);
+  border-radius: 100%;
+  position: absolute;
+  background-color: #bdc3c7;
+  z-index: -1;
+  transition: 1.5s all ease;
+  -webkit-animation: woong-2 1.5s infinite;
+  animation: woong-2 1.5s infinite;
+  -webkit-animation-delay: 2.5s;
+  animation-delay: 2.5s;
+}
+
+@keyframes woong {
+  0% {
+    -webkit-trasform: scale(1.2);
+  }
+  50% {
+    -webkit-transform: scale(1.8);
+    opacity: 0.5;
+  }
+  100% {
+    -webkit-transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes woong-2 {
+  0% {
+    -webkit-transform: scale(1.2);
+    opacity: 0.6;
+  }
+  50% {
+    -webkit-transform: scale(1.6);
+    opacity: 0.5;
+  }
+  100% {
+    -webkit-transform: scale(2);
+    opacity: 0;
+  }
+}
+</style>
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+</head>
+<body>
+  <div id="rec_container" class="recorder-container">
+    <div class="outer"></div>
+    <div class="outer-2"></div>
+    <div class="icon-microphone">REC</div>
+  </div>
+  <div class='wrapper' style="margin-top: 25px;">
+
+  </div>   
+  <script>
+    const socket = io();
+    document.getElementById('rec_container').style.display = 'block';
+    socket.on('connect', () => {
+      console.log('Connected to the server');
+    });
+
+    socket.on('wake_word_detected', (data) => {
+        document.getElementById('rec_container').style.display = 'none';
+        const speechBubbles = document.querySelectorAll('.speechbubble');
+        speechBubbles.forEach((speechBubble) => {
+            speechBubble.remove();
+        });
+      console.log('Wake word detected:', data.message);
+        setTimeout(() => {
+            addSpeechBubble('Alexa...?', 'User');
+            addSpeechBubble('Du hast 10 Sekunden Zeit mir deine unbedeutenden Worte mitzuteilen! </br>Ich höre...', 'Alexa');
+            const audio = new Audio('ping.mp3');
+            audio.play();
+        }, 300);
+    });
+
+    socket.on('response_text', (data) => {
+      console.log('Response text:', data.message);
+      addSpeechBubble(data.message, 'Alexa');
+    });
+
+    socket.on('listening', (data) => {
+      console.log('Listening:', data.message);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from the server');
+    });
+
+    socket.on('text_output', (data) => {
+      console.log('Text output:', data.message);
+      addSpeechBubble(data.message, 'User');
+    });
+
+    socket.on('finished', (data) => {
+      console.log('Finished:', data.message);
+    });
+
+    socket.on('speech', (data) => {
+        console.log('Speech:', data.message);
+        if (data.message === 'speech.mp3') {
+            var param = new Date().getTime();
+            src = "?cb=" + param;
+            const audio = new Audio('speech.mp3' + src); 
+            audio.play(); 
+            audio.onended = () => {
+              setTimeout(() => {
+                  const speechBubbles = document.querySelectorAll('.speechbubble');
+                  speechBubbles.forEach((speechBubble) => {
+                      speechBubble.remove();
+                  });
+                  document.getElementById('rec_container').style.display = 'block';
+              }, 15000);
+            };
+        }
+    });
+
+    function addSpeechBubble(message, username) {
+      const wrapper = document.querySelector('.wrapper');
+      const speechBubble = document.createElement('div');
+      speechBubble.classList.add('speechbubble');
+      speechBubble.innerHTML = `
+        <p>${message}<span class='username'>${username}</span></p>
+      `;
+      wrapper.appendChild(speechBubble);
+    }
+  </script>
+</body>
+</html>

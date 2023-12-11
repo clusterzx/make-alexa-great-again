@@ -1,0 +1,31 @@
+{
+  "name": "make-alexa-great-again",
+  "version": "1.0.0",
+  "description": "Simple Voice Assistant with OpenAI implementation",
+  "main": "index.js",
+  "scripts": {
+    "test": "devStart"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clusterzx/make-alexa-great-again.git"
+  },
+  "keywords": [
+    "ai",
+    "voice",
+    "assistant",
+    "openai",
+    "alexa",
+    "clone"
+  ],
+  "author": "Clusterzx",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/clusterzx/make-alexa-great-again/issues"
+  },
+  "homepage": "https://github.com/clusterzx/make-alexa-great-again#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  }
+}
