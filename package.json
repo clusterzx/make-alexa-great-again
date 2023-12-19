@@ -1,7 +1,5 @@
 {
   "dependencies": {
-    "@picovoice/porcupine-node": "^3.0.1",
-    "bumblebee-hotword": "^0.2.1",
     "express": "^4.18.2",
     "node-mic-record": "^0.0.1",
     "node-record-lpcm16": "^1.0.1",
