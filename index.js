@@ -61,6 +61,17 @@ io.on('connection', (socket) => {
         io.emit('rec_stop', { message: data.message });
         console.log('rec_stop:', data.message);
     });
+    
+    socket.on('error_output', (data) => {
+        io.emit('error_output', { message: data.message });
+        console.log('error_output:', data.message);
+    });
+
+    socket.on('dall_e', (data) => {
+      io.emit('dall_e', { message: data.message });
+      console.log('Dalle Image:', data.message);
+    });
+
 });
 
 const PORT = 3010; // Replace with your desired port

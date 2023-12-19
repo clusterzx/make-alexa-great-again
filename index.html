@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Make Alexa great again</title>
+  <title>Alexa auf Steroiden</title>
   <style>
     @charset "UTF-8";
     .text-center {
@@ -36,6 +36,21 @@
       margin-bottom: 20px;
       cursor: default;
       margin-bottom: 35px;
+    }
+    .speechbubble p {
+      position: relative;
+    }
+
+    .speechbubble p .image-container {
+      max-width: 100%; /* Set a maximum width for the container */
+      overflow: hidden; /* Hide any overflowing content */
+    }
+
+    .speechbubble p .image-container img {
+      width: auto; /* Make the image width 100% of its container */
+      height: 500px; /* Maintain the aspect ratio of the image */
+      display: block;
+      margin: 0 auto; /* Center the image horizontally */
     }
     .speechbubble:nth-child(2n) {
       border-left: 5px solid;
@@ -194,6 +209,7 @@
   </div>   
   <script>
     const socket = io();
+    //show rec_container
     document.getElementById('rec_container').style.display = 'block';
     socket.on('connect', () => {
       console.log('Connected to the server');
@@ -206,9 +222,11 @@
             speechBubble.remove();
         });
       console.log('Wake word detected:', data.message);
+      //sleep 2 seconds before adding speech bubbles
         setTimeout(() => {
-            addSpeechBubble('Alexa...?', 'User');
+            addSpeechBubble('Alexa...?', 'Clusterzx');
             addSpeechBubble('Du hast 10 Sekunden Zeit mir deine unbedeutenden Worte mitzuteilen! </br>Ich höre...', 'Alexa');
+            //play ping.mp3 from root directory
             const audio = new Audio('ping.mp3');
             audio.play();
         }, 300);
@@ -229,41 +247,133 @@
 
     socket.on('text_output', (data) => {
       console.log('Text output:', data.message);
-      addSpeechBubble(data.message, 'User');
+      addSpeechBubble(data.message, 'Clusterzx');
     });
 
     socket.on('finished', (data) => {
       console.log('Finished:', data.message);
     });
 
-    socket.on('speech', (data) => {
-        console.log('Speech:', data.message);
-        if (data.message === 'speech.mp3') {
-            var param = new Date().getTime();
-            src = "?cb=" + param;
-            const audio = new Audio('speech.mp3' + src); 
-            audio.play(); 
-            audio.onended = () => {
-              setTimeout(() => {
+    socket.on('rec_stop', (data) => {
+      // // change visibility of recording text to not visible
+      // document.getElementById('rec_container').style.display = 'block';
+    });
+
+    socket.on('dall_e', (data) => {
+      console.log('Dall-e:', data.message);
+      addImageBubble(data.message, 'Alexa');
+    });
+
+    socket.on('error_output', (data) => {
+      console.log('Error:', data.message);
+      addSpeechBubble(data.message, 'Alexa');
+      setTimeout(() => {
                   const speechBubbles = document.querySelectorAll('.speechbubble');
                   speechBubbles.forEach((speechBubble) => {
                       speechBubble.remove();
                   });
                   document.getElementById('rec_container').style.display = 'block';
               }, 15000);
+    });
+
+    socket.on('speech', (data) => {
+        console.log('Speech:', data.message);
+        if (data.message === 'speech.mp3') {
+
+            //play audio file from root directory+/speech.mp3
+            var param = new Date().getTime();
+            src = "?cb=" + param;
+            const audio = new Audio('speech.mp3' + src); 
+            audio.play(); 
+            audio.onended = () => {
+              //wait 15 seconds
+              setTimeout(() => {
+                  //remove all speech bubbles for each bubble
+                  const speechBubbles = document.querySelectorAll('.speechbubble');
+                  speechBubbles.forEach((speechBubble) => {
+                      speechBubble.remove();
+                  });
+                  // change visibility of recording text to not visible
+                  document.getElementById('rec_container').style.display = 'block';
+              }, 15000);
             };
         }
     });
 
-    function addSpeechBubble(message, username) {
+  function addSpeechBubble(message, username) {
+    const wrapper = document.querySelector('.wrapper');
+    const speechBubble = document.createElement('div');
+    speechBubble.classList.add('speechbubble');
+    speechBubble.innerHTML = `
+      <p>${message}<span class='username'>${username}</span></p>
+    `;
+    wrapper.appendChild(speechBubble);
+
+    // Check the number of speech bubbles and remove the first two if there are more than two
+    removeFirstTwoSpeechBubbles();
+  }
+
+  function removeFirstTwoSpeechBubbles() {
+    const wrapper = document.querySelector('.wrapper');
+    const speechBubbles = document.querySelectorAll('.speechbubble');
+
+    // Remove the first two speech bubbles if there are more than two
+    if (speechBubbles.length > 2) {
+      for (let i = 0; i < 2; i++) {
+        wrapper.removeChild(speechBubbles[i]);
+      }
+    }
+  }
+
+    function addImageBubble(message, username) {
       const wrapper = document.querySelector('.wrapper');
       const speechBubble = document.createElement('div');
       speechBubble.classList.add('speechbubble');
       speechBubble.innerHTML = `
-        <p>${message}<span class='username'>${username}</span></p>
+        <p class="image-container"><img class="image-container" src="${message}" alt="Description of the image"><span class='username'>${username}</span></p>
       `;
       wrapper.appendChild(speechBubble);
+      //sleep for 1 second and scroll to bottom
+      setTimeout(() => {
+          window.scrollTo(0,document.body.scrollHeight);
+      }, 1500);
+      setTimeout(() => {
+                  const speechBubbles = document.querySelectorAll('.speechbubble');
+                  speechBubbles.forEach((speechBubble) => {
+                      speechBubble.remove();
+                  });
+                  document.getElementById('rec_container').style.display = 'block';
+                  //scroll to top
+                  window.scrollTo(0,0);
+              }, 15000);
+      removeFirstTwoSpeechBubbles();
     }
+  </script>
+  
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Function to scroll to the bottom
+    function scrollToBottom() {
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    // Create a MutationObserver to watch for changes in the DOM
+    const observer = new MutationObserver(scrollToBottom);
+
+    // Configuration of the observer (watch for childList changes)
+    const observerConfig = {
+      childList: true,
+    };
+
+    // Start observing the body element for changes
+    observer.observe(document.body, observerConfig);
+
+    // Optionally, disconnect the observer when you no longer need it
+    // observer.disconnect();
+    
+    // Scroll to the bottom when the page is fully loaded
+    scrollToBottom();
+  });
   </script>
 </body>
 </html>

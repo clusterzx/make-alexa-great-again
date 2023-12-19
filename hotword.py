@@ -9,12 +9,12 @@ import socketio
 
 sio = socketio.Client()
 sio.connect('http://localhost:3010')
-model_path = "vosk-model-de-0.21/"
+model_path = "vosk-model-small-de-0.15"
 hotword = "alexa"
 model = vosk.Model(model_path)
 rec = vosk.KaldiRecognizer(model, 16000)
 
-OPENAI_API_KEY = 'YOUR_API_KEY_HERE'
+OPENAI_API_KEY = 'YOUR-API-KEY'
 
 def send_message_to_node_server(action, message):
     if sio.sid:
@@ -81,32 +81,55 @@ def openAI():
     file=audio_file
     )
     print("TEXT OUTPUT: " + transcript.text)
-    time_difference = time.time() - start_time
-    print("TIME DIFFERENCE OpenAI: " + str(time_difference))
-    send_message_to_node_server('text_output', transcript.text)
 
-    completion = client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant. Answer short as possible."},
-        {"role": "user", "content": transcript.text}
-    ]
-    )
-    print(completion.choices[0].message.content)
-    responseText = completion.choices[0].message.content
-    speech_file_path = Path(__file__).parent / "speech.mp3"
-    response = client.audio.speech.create(
-    model="tts-1",
-    voice="alloy",
-    input=completion.choices[0].message.content
-    )
+    if "male mir ein bild" in transcript.text.lower():
+        try:       
+            time_difference = time.time() - start_time
+            print("DALL-E")
+            response = client.images.generate(
+            model="dall-e-3",
+            prompt=transcript.text,
+            size="1024x1024",
+            quality="standard",
+            n=1,
+            )
+            image_url = response.data[0].url
+            send_message_to_node_server('dall_e', image_url)
+            print(image_url)
+            print("finished")
+            send_message_to_node_server('finished', 'finished')
+        except:
+            print("DALL-E ERROR")
+            send_message_to_node_server('error_output', 'Leider konnte ich kein Bild erstellen. Bitte versuche es erneut.')
+            print("finished")
+            send_message_to_node_server('finished', 'finished')
+    else:
+        time_difference = time.time() - start_time
+        print("TIME DIFFERENCE OpenAI: " + str(time_difference))
+        send_message_to_node_server('text_output', transcript.text)
 
-    response.stream_to_file(speech_file_path)
-    send_message_to_node_server('response_text', responseText)
-    send_message_to_node_server('speech', 'speech.mp3')
+        completion = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant. Answer short as possible."},
+            {"role": "user", "content": transcript.text}
+        ]
+        )
+        print(completion.choices[0].message.content)
+        responseText = completion.choices[0].message.content
+        speech_file_path = Path(__file__).parent / "speech.mp3"
+        response = client.audio.speech.create(
+        model="tts-1",
+        voice="alloy",
+        input=completion.choices[0].message.content
+        )
 
-    print("finished")
-    send_message_to_node_server('finished', 'finished')
+        response.stream_to_file(speech_file_path)
+        send_message_to_node_server('response_text', responseText)
+        send_message_to_node_server('speech', 'speech.mp3')
+
+        print("finished")
+        send_message_to_node_server('finished', 'finished')
 
 def main():
     def hotword_detected_callback():
